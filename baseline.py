@@ -15,6 +15,7 @@ WARMUP_RUNS = 1 # warmup run to mitigate any initial overhead
 #-------------------
 
 # Tokenizer & Model Loading
+
 print("---Tokenizer---")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
@@ -120,7 +121,7 @@ results = {
     "num_trials": NUM_TRIALS,
     "avg_tokens_per_sec": round(avg_tps, 2),
     "avg_latency_ms": round(avg_latency_ms, 1),
-    "best_latency_ms": round(best_latency, 1),
+    "best_latency_ms": round(best_latency_ms, 1),
     "peak_gpu_memory_mb": round(peak_memory_mb, 1),
     "per_trial_latency_ms": [round(x, 1) for x in latencies_ms],
     "per_trial_tps": [round(x, 2) for x in tokens_per_sec_list],
