@@ -23,7 +23,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 print("---Loading model...---")
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH,
-    torch_dtype=torch.float16,
+    dtype=torch.float16,
     device_map="cuda:0") # places model entiely on GPU, change as needed 
 
 model.eval() # switches from train to inf modes
