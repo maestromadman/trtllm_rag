@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 MODEL_PATH = "/home/amallya0523/models/llama-3.1-8b"
 
-PROMPT = "Explain the difference between the transformer encoder and decoder architectures in detail, including attention mechanisms, positional encoding, and typical use cases.""
+PROMPT = "Explain the difference between the transformer encoder and decoder architectures in detail, including attention mechanisms, positional encoding, and typical use cases."
 
 #-- Some controls --
 MAX_NEW_TOKENS = 200 # fixing this for consistency
@@ -65,7 +65,7 @@ tokens_per_sec_list = []
 print(f"Running {NUM_TRIALS} trials!")
 for i in range(NUM_TRIALS):
     # start and end with cuda sync and perf_counter for accuracy
-    torch.cuda.syncrhonize()
+    torch.cuda.synchronize()
     t_start = time.perf_counter()
 
     with torch.no_grad():
@@ -86,7 +86,7 @@ for i in range(NUM_TRIALS):
     latencies_ms.append(elapsed_ms) # add metrics to lists
     tokens_per_sec_list.append(tps)
 
-    print(f"Trial {i+1}: {Elapsed_ms:7.1f} ms | {TPS:7.1f} tokens/sec") | {new_tokens} tokens generated")
+    print(f"Trial {i+1}: {elapsed_ms:7.1f} ms | {tps:7.1f} tokens/sec | {new_tokens} tokens generated")
 
 
 # PEAK MEM USAGE
@@ -104,7 +104,7 @@ print(" HUGGING FACE FLOAT16 - BASELINE")
 print("=" * 52)
 print(f"   Avg Throughput   : {avg_tps:.2f} tok/s")
 print(f"   Avg Latency      : {avg_latency_ms:.1f} ms")
-print(f"   Best Latency     : {best_latency:.1f} ms")
+print(f"   Best Latency     : {best_latency_ms:.1f} ms")
 print(f"   Peak GPU Memory  : {peak_memory_mb:.1f} MB")
 print("=" * 52)
 
