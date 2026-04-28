@@ -1,7 +1,7 @@
 import time
 import json
 import torch
-from tensorrt_llm import LLM, Sampling Params
+from tensorrt_llm import LLM, SamplingParams
 
 # CONFIG 
 
@@ -24,7 +24,7 @@ print("---Loading TensorRT Engine---")
 llm = LLM(model=ENGINE_DIR) # engine already compiled, just loaded into GPU mem
 
 sampling_params = SamplingParams(
-    max_new_tokens=MAX_NEW_TOKENS,
+    max_tokens=MAX_NEW_TOKENS,
     temperature=0.0 # equivalent to do_sample=False in HF
 )
 
