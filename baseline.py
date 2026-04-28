@@ -4,6 +4,10 @@ import json
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
+from prometheus_client import Gauge, start_http_server
+
+
+
 MODEL_PATH = "/home/amallya0523/models/llama-3.1-8b"
 
 PROMPT = "Explain the difference between the transformer encoder and decoder architectures in detail, including attention mechanisms, positional encoding, and typical use cases."
@@ -13,6 +17,16 @@ MAX_NEW_TOKENS = 200 # fixing this for consistency
 NUM_TRIALS = 5  # five generations, will take avg, smooths out noise
 WARMUP_RUNS = 1 # warmup run to mitigate any initial overhead
 #-------------------
+
+
+THROUGHPUT_GAUGE = Gauge("llm_tokens_per_sec", "Average tokens per second", ["backend"])
+LATENCY_GAUGE    = Gauge("llm_avg_latency_ms", "Average latency in milliseconds", ["backend"])
+MEMORY_GAUGE     = Gauge("llm_peak_memory_mb", "Peak GPU memory in MB", ["backend"])
+
+start_http_server(8000)
+print("Prometheus metrics server started on port 8000")
+
+
 
 # Tokenizer & Model Loading
 
@@ -126,6 +140,11 @@ results = {
     "per_trial_latency_ms": [round(x, 1) for x in latencies_ms],
     "per_trial_tps": [round(x, 2) for x in tokens_per_sec_list],
 }
+
+THROUGHPUT_GAUGE.labels(backend="huggingface_float16").set(avg_tps)
+LATENCY_GAUGE.labels(backend="huggingface_float16").set(avg_latency_ms)
+MEMORY_GAUGE.labels(backend="huggingface_float16").set(peak_memory_mb)
+print("Metrics pushed to Prometheus.")
 
 with open("baseline_results.json", "w") as f:
     json.dump(results, f, indent=2) # strucuted record stored on disk for Prometheus later
