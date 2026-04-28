@@ -1,8 +1,10 @@
 import time
 import json
 import torch
-from tensorrt_llm import LLM, SamplingParams
+from transformers import AutoTokenizer
+from tensorrt_llm.runtime import ModelRunner
 
+TOKENIZER_PATH = "/models/llama"
 ENGINE_DIR     = "/workspace/trtllm_rag/llama_int8_engine"
 PROMPT         = (
     "Explain the difference between the transformer encoder and decoder architectures "
@@ -14,14 +16,24 @@ WARMUP_RUNS    = 1
 
 if __name__ == "__main__":
 
-    print("---Loading TensorRT Engine---")
-    llm = LLM(model=ENGINE_DIR)
+    print("Loading tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
+    end_id = tokenizer.eos_token_id
+    pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else end_id
 
-    sampling_params = SamplingParams(max_tokens=MAX_NEW_TOKENS, temperature=0.0)
+    print("Loading TRT-LLM engine...")
+    runner = ModelRunner.from_dir(engine_dir=ENGINE_DIR, rank=0)
+
+    input_ids = tokenizer.encode(PROMPT, return_tensors="pt")[0]
 
     print(f"Running {WARMUP_RUNS} warm-up pass(es) - result discarded!")
-    for _ in range(WARMUP_RUNS):
-        llm.generate([PROMPT], sampling_params)
+    with torch.no_grad():
+        runner.generate(
+            batch_input_ids=[input_ids],
+            max_new_tokens=MAX_NEW_TOKENS,
+            end_id=end_id,
+            pad_id=pad_id,
+        )
     torch.cuda.synchronize()
 
     torch.cuda.reset_peak_memory_stats()
@@ -35,13 +47,21 @@ if __name__ == "__main__":
     for i in range(NUM_TRIALS):
         torch.cuda.synchronize()
         t_start = time.perf_counter()
-        outputs = llm.generate([PROMPT], sampling_params)
+
+        with torch.no_grad():
+            outputs = runner.generate(
+                batch_input_ids=[input_ids],
+                max_new_tokens=MAX_NEW_TOKENS,
+                end_id=end_id,
+                pad_id=pad_id,
+            )
+
         torch.cuda.synchronize()
         t_end = time.perf_counter()
 
         elapsed_sec = t_end - t_start
         elapsed_ms  = elapsed_sec * 1000
-        new_tokens  = len(outputs[0].outputs[0].token_ids)
+        new_tokens  = outputs[0][0].shape[0]
         tps         = new_tokens / elapsed_sec
 
         latencies_ms.append(elapsed_ms)
