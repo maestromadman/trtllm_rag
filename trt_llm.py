@@ -15,7 +15,7 @@ WARMUP_RUNS    = 1
 if __name__ == "__main__":
 
     print("---Loading TensorRT Engine---")
-    llm = LLM(model=ENGINE_DIR, backend="tensorrt")
+    llm = LLM(model=ENGINE_DIR)
 
     sampling_params = SamplingParams(max_tokens=MAX_NEW_TOKENS, temperature=0.0)
 
