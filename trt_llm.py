@@ -3,6 +3,7 @@ import json
 import torch
 from transformers import AutoTokenizer
 from tensorrt_llm.runtime import ModelRunner
+from prometheus_client import Gauge, start_http_server
 
 TOKENIZER_PATH = "/models/llama"
 ENGINE_DIR     = "/workspace/trtllm_rag/llama_int8_engine"
@@ -15,6 +16,13 @@ NUM_TRIALS     = 5
 WARMUP_RUNS    = 1
 
 if __name__ == "__main__":
+
+    THROUGHPUT_GAUGE = Gauge("llm_tokens_per_sec", "Average tokens per second", ["backend"])
+    LATENCY_GAUGE    = Gauge("llm_avg_latency_ms", "Average latency in milliseconds", ["backend"])
+    MEMORY_GAUGE     = Gauge("llm_peak_memory_mb", "Peak GPU memory in MB", ["backend"])
+
+    start_http_server(8000)
+    print("Prometheus metrics server started on port 8000")
 
     print("Loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
@@ -92,6 +100,11 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print("   (baseline_results.json not found)")
 
+    THROUGHPUT_GAUGE.labels(backend="trtllm_int8").set(avg_tps)
+    LATENCY_GAUGE.labels(backend="trtllm_int8").set(avg_latency_ms)
+    MEMORY_GAUGE.labels(backend="trtllm_int8").set(peak_memory_mb)
+    print("Metrics pushed to Prometheus.")
+
     results = {
         "backend": "trtllm_int8_weight_only",
         "engine_dir": ENGINE_DIR,
@@ -107,3 +120,4 @@ if __name__ == "__main__":
     with open("/workspace/trtllm_rag/trtllm_results.json", "w") as f:
         json.dump(results, f, indent=2)
     print("Results saved -> trtllm_results.json")
+    input("Metrics live — press Enter to exit...")

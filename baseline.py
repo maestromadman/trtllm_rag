@@ -150,3 +150,4 @@ with open("baseline_results.json", "w") as f:
     json.dump(results, f, indent=2) # strucuted record stored on disk for Prometheus later
 
 print("Results saved to baseline_results.json")
+input("Metrics live — press Enter to exit...")
