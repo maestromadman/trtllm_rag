@@ -120,4 +120,5 @@ if __name__ == "__main__":
     with open("/workspace/trtllm_rag/trtllm_results.json", "w") as f:
         json.dump(results, f, indent=2)
     print("Results saved -> trtllm_results.json")
-    input("Metrics live — press Enter to exit...")
+    time.sleep(30)
+    print("Waiting 30s for Prometheus to scrape...")
