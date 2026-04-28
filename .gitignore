@@ -219,3 +219,9 @@ __marimo__/
 
 # JSON 
 *.json
+
+
+*.safetensors
+*.engine
+*.cache
+model.cache
